@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Battleship!</title>
+        <link rel="stylesheet" href="battleship.css">
+
+        <script>
+
+            //GLOBAL VARS
+                //User information
+                    let p1_name, p2_name, p1_input, p2_input;
+                //User boards
+                    let p1Board, p2Board;
+                //User scores (used for determining score and end-of-game)
+                    var p1_score = 24, p2_score = 24;
+                //Position arrays of users' ships
+                    let p1a, p1b, p1s, p2a, p2b, p2s;
+                //Positions of user's ships that havent been hit yet
+                    let a1Remaining, b1Remaining, s1Remaining, a2Remaining, b2Remaining, s2Remaining;
+                //Keep all cells that have been guessed already
+                    let alreadyGuessed = new Array();
+                //Button for popups
+                    let contButton = document.createElement('input');
+                    contButton.setAttribute('id', 'continueButton');
+                    contButton.setAttribute('class','contButton');
+                    contButton.setAttribute('type','button');
+                    contButton.setAttribute('value','Continue');
+
+            function setPlayer1() {
+                //Hide the player entry form
+                    document.getElementById('form').style.visibility='hidden';
+                //Get the names and assign them to variables
+                    var names = document.getElementById("form");
+                    p1_name = names.elements[0].value;
+                    p2_name = names.elements[1].value;
+                document.getElementById('inputPrompt').style.visibility='visible';
+
+                document.getElementById('nextButton2').style.visibility = 'hidden';
+
+                var element = document.getElementById('inputPrompt');
+
+                //Add text to the prompt
+                    const content = document.createTextNode(p1_name + ", please choose where you would like your ships:");
+                // appending to html
+                    element.insertBefore(content, element.firstChild);
+
+            }
+
+            function setPlayer2() {
+
+                document.getElementById('nextButton1').style.visibility = 'hidden';
+                document.getElementById('nextButton2').style.visibility = 'visible';
+
+                p1_input = document.getElementById('shipSelection').value;
+                document.getElementById('shipSelection').value = "";
+
+                var element = document.getElementById('inputPrompt');
+                
+                // remove text from the first player's turn
+                    element.removeChild(element.firstChild);
+                // add text to the prompt for the second player
+                    const content = document.createTextNode(p2_name + ", please choose where you would like your ships:");
+                // appending to html
+                    element.insertBefore(content, element.firstChild);
+                
+            }
+
+            function processInput() {
+                p2_input = document.getElementById('shipSelection').value;
+
+                let p1_aircraft, p1_battleship, p1_sub, p2_aircraft, p2_battleship, p2_sub;
+                
+                //Split input by type of ship
+                    let p1_input_list = p1_input.split(';');
+                    let p2_input_list = p2_input.split(';');
+                
+                //Get specific locations for each ship
+                    for(let count = 0; count < 3; count+=1)
+                    {
+                        if(p1_input_list[count].at(0) == 'A')
+                            p1_aircraft = p1_input_list[count].slice(2,7);
+                        if(p1_input_list[count].at(0) == 'B')
+                            p1_battleship = p1_input_list[count].slice(2,7);
+                        if(p1_input_list[count].at(0) == 'S')
+                            p1_sub = p1_input_list[count].slice(2,7)
+                    }
+
+                    for(let count = 0; count < 3; count+=1)
+                    {
+                        if(p2_input_list[count].at(0) == 'A')
+                            p2_aircraft = p2_input_list[count].slice(2,7);
+                        if(p2_input_list[count].at(0) == 'B')
+                            p2_battleship = p2_input_list[count].slice(2,7);
+                        if(p2_input_list[count].at(0) == 'S')
+                            p2_sub = p2_input_list[count].slice(2,7)
+                    }
+
+                //Find start and end locations of each aircraft
+                    p1_aircraft_arr = p1_aircraft.split('-');
+                    p1_aircraft_start = p1_aircraft_arr[0];
+                    p1_aircraft_end = p1_aircraft_arr[1];
+
+                    p2_aircraft_arr = p2_aircraft.split('-');
+                    p2_aircraft_start = p2_aircraft_arr[0];
+                    p2_aircraft_end = p2_aircraft_arr[1];
+
+                //Find all locations of each aircraft
+                    //Store first location of p1 aircraft
+                        p1a = [p1_aircraft_start];
+                        let p1a_letter = p1_aircraft_start.charAt(0);
+                        let p1a_num = parseInt(p1_aircraft_start.charAt(1));
+
+                    if(p1_aircraft_start.charAt(0) == p1_aircraft_end.charAt(0)) //CASE: HORIZONTAL PLACEMENT
+                    {
+                        //Fill in remaining locations
+                            for(let i = 1; i < 4; i+=1)
+                                p1a.push(p1a_letter + (p1a_num + i));
+                            p1a.push(p1_aircraft_end);
+                    }
+                    else //CASE: VERTICAL PLACEMENT
+                    {
+                        //Fill in remaining locations
+                            for(let i = 1; i < 4; i+=1)
+                                p1a.push((String.fromCharCode(p1a_letter.charCodeAt(0) + i) + p1a_num));
+                            p1a.push(p1_aircraft_end);
+                    }
+
+                    //Store first location of p2 aircraft
+                        p2a = [p2_aircraft_start];
+                        let p2a_letter = p2_aircraft_start.charAt(0);
+                        let p2a_num = parseInt(p2_aircraft_start.charAt(1));
+
+                    if(p2_aircraft_start.charAt(0) == p2_aircraft_end.charAt(0)) //CASE: HORIZONTAL PLACEMENT
+                    {
+                        //Fill in remaining locations
+                            for(let i = 1; i < 4; i+=1)
+                                p2a.push(p2a_letter + (p2a_num + i));
+                            p2a.push(p2_aircraft_end);
+
+                    }
+                    else //CASE: VERTICAL PLACEMENT
+                    {
+                        //Fill in remaining locations
+                            for(let i = 1; i < 4; i+=1)
+                                p2a.push((String.fromCharCode(p2a_letter.charCodeAt(0) + i) + p2a_num));
+                            p2a.push(p2_aircraft_end);
+
+                    }
+
+                a1Remaining = p1a;
+                a2Remaining = p2a;
+
+                //Find start and end locations of each battleship
+                    p1_battleship_arr = p1_battleship.split('-');
+                    p1_battleship_start = p1_battleship_arr[0];
+                    p1_battleship_end = p1_battleship_arr[1];
+
+                    p2_battleship_arr = p2_battleship.split('-');
+                    p2_battleship_start = p2_battleship_arr[0];
+                    p2_battleship_end = p2_battleship_arr[1];
+
+                //Find all locations of each battleship
+                    //Store first location of p1 battleship
+                        p1b = [p1_battleship_start];
+                        let p1b_letter = p1_battleship_start.charAt(0);
+                        let p1b_num = parseInt(p1_battleship_start.charAt(1));
+
+                    if(p1_battleship_start.charAt(0) == p1_battleship_end.charAt(0)) //CASE: HORIZONTAL PLACEMENT
+                    {
+                        //Fill in remaining locations
+                            for(let i = 1; i < 3; i+=1)
+                                p1b.push(p1b_letter + (p1b_num + i));
+                            p1b.push(p1_battleship_end);
+                    }
+                    else //CASE: VERTICAL PLACEMENT
+                    {
+                        //Fill in remaining locations
+                            for(let i = 1; i < 3; i+=1)
+                                p1b.push((String.fromCharCode(p1b_letter.charCodeAt(0) + i) + p1b_num));
+                            p1b.push(p1_battleship_end);
+                    }
+
+                    //Store first location of p2 battleship
+                        p2b = [p2_battleship_start];
+                        let p2b_letter = p2_battleship_start.charAt(0);
+                        let p2b_num = parseInt(p2_battleship_start.charAt(1));
+
+                    if(p2_battleship_start.charAt(0) == p2_battleship_end.charAt(0)) //CASE: HORIZONTAL PLACEMENT
+                    {
+                        //Fill in remaining locations
+                            for(let i = 1; i < 3; i+=1)
+                                p2b.push(p2b_letter + (p2b_num + i));
+                            p2b.push(p2_battleship_end);
+
+                    }
+                    else //CASE: VERTICAL PLACEMENT
+                    {
+                        //Fill in remaining locations
+                            for(let i = 1; i < 3; i+=1)
+                                p2b.push((String.fromCharCode(p2b_letter.charCodeAt(0) + i) + p2b_num));
+                            p2b.push(p2_battleship_end);
+
+                    }
+
+                b1Remaining = p1b;
+                b2Remaining = p2b;
+
+                //Find start and end locations of each submarine
+                    p1_sub_arr = p1_sub.split('-');
+                    p1_sub_start = p1_sub_arr[0];
+                    p1_sub_end = p1_sub_arr[1];
+
+                    p2_sub_arr = p2_sub.split('-');
+                    p2_sub_start = p2_sub_arr[0];
+                    p2_sub_end = p2_sub_arr[1];
+
+                
+                //Find all locations of each sub
+                    //Store first location of p1 sub
+                    p1s = [p1_sub_start];
+                        let p1s_letter = p1_sub_start.charAt(0);
+                        let p1s_num = parseInt(p1_sub_start.charAt(1));
+
+                    if(p1_sub_start.charAt(0) == p1_sub_end.charAt(0)) //CASE: HORIZONTAL PLACEMENT
+                    {
+                        //Fill in remaining locations
+                            p1s.push(p1s_letter + (p1s_num + 1));
+                            p1s.push(p1_sub_end);
+                    }
+                    else //CASE: VERTICAL PLACEMENT
+                    {
+                        //Fill in remaining locations
+                            p1s.push((String.fromCharCode(p1s_letter.charCodeAt(0) + 1) + p1s_num));
+                            p1s.push(p1_sub_end);
+                    }
+
+                    //Store first location of p2 sub
+                        p2s = [p2_sub_start];
+                        let p2s_letter = p2_sub_start.charAt(0);
+                        let p2s_num = parseInt(p2_sub_start.charAt(1));
+
+                    if(p2_sub_start.charAt(0) == p2_sub_end.charAt(0)) //CASE: HORIZONTAL PLACEMENT
+                    {
+                        //Fill in remaining locations
+                            p2s.push(p2s_letter + (p2s_num + 1));
+                            p2s.push(p2_sub_end);
+
+                    }
+                    else //CASE: VERTICAL PLACEMENT
+                    {
+                        //Fill in remaining locations
+                            p2s.push((String.fromCharCode(p2s_letter.charCodeAt(0) + 1) + p2s_num));
+                            p2s.push(p2_sub_end);
+
+                    }
+                
+                s1Remaining = p1s;
+                s2Remaining = p2s;
+
+                startGame();
+
+            }
+
+            function startGame() {                
+                document.getElementById('inputPrompt').style.visibility='hidden';
+                document.getElementById('nextButton2').style.visibility='hidden';
+
+                //Construct the boards for the players
+                    p1Board = document.createElement('div');
+                    p1Board.setAttribute('id','currPlayerBoard');
+                    p1Board.setAttribute('class','board');
+
+                    let currPlayerBoardCover = document.createElement('div');
+                    currPlayerBoardCover.setAttribute('id', 'cover');
+                    document.body.appendChild(currPlayerBoardCover);
+
+                    p2Board = document.createElement('div');
+                    p2Board.setAttribute('id','opponentBoard');
+                    p2Board.setAttribute('class','board');
+
+                    document.body.appendChild(p1Board);
+                    document.body.appendChild(p2Board);
+                    document.body.appendChild(currPlayerBoardCover);
+
+                
+                //Fill the boards with cells
+                    let letters = 'A';
+                    let nums = 0;
+                    for(let i = 0; i < 10; i+=1)
+                    {
+                        for(let j = 1; j < 11; j+=1)
+                        {
+                            for(let k = 0; k < 2; k+=1)
+                            {
+                                if(k == 0) //fill board 1
+                                {
+                                    const cell1 = document.createElement('div');
+                                    let letter = String.fromCharCode(letters.charCodeAt(0) + i);
+                                    let id = letter + j;
+                                    cell1.setAttribute('id','p1_'+id);
+                                    cell1.setAttribute('class','cell');
+                                    p1Board.appendChild(cell1);                                        
+                                    cell1.addEventListener('click', () => checkHit('p1_'+id));
+                                }
+                                else //fill board 2
+                                {
+                                    const cell2 = document.createElement('div');
+                                    let letter = String.fromCharCode(letters.charCodeAt(0) + i);
+                                    let id = letter + j;
+                                    cell2.setAttribute('id','p2_'+id);
+                                    cell2.setAttribute('class','cell');
+                                    p2Board.appendChild(cell2);
+                                    cell2.addEventListener('click', () => checkHit('p2_'+id));
+
+                                }
+                            }
+                        }
+                    }
+
+                //Label where the ships are in each board
+                for(const element in a1Remaining)
+                {
+                    let node = document.createTextNode('A');
+                    document.getElementById('p1_'+a1Remaining[element]).appendChild(node);
+                }
+                for(const element in b1Remaining)
+                {
+                    let node = document.createTextNode('B');
+                    document.getElementById('p1_'+b1Remaining[element]).appendChild(node);
+                }
+                for(const element in s1Remaining)
+                {
+                    let node = document.createTextNode('S');
+                    document.getElementById('p1_'+s1Remaining[element]).appendChild(node);
+                }
+                for(const element in a2Remaining)
+                {
+                    let node = document.createTextNode('A');
+                    document.getElementById('p2_'+a2Remaining[element]).appendChild(node);
+                }
+                for(const element in b2Remaining)
+                {
+                    let node = document.createTextNode('B');
+                    document.getElementById('p2_'+b2Remaining[element]).appendChild(node);
+                }
+                for(const element in s2Remaining)
+                {
+                    let node = document.createTextNode('S');
+                    document.getElementById('p2_'+s2Remaining[element]).appendChild(node);
+                }
+
+                p1TurnPrompt();
+
+            }
+
+            function checkHit(id) {
+            
+                if(alreadyGuessed.includes(id))
+                {
+                    tryAgain();
+                    return;
+                }
+                else
+                    alreadyGuessed.push(id);
+
+                idSplit = id.split('_');
+                boardToCheck = idSplit[0];
+                cellToCheck = idSplit[1];
+
+                let index;
+
+                if(boardToCheck == 'p1')
+                {
+                    if(a1Remaining.includes(cellToCheck))
+                    {
+                        document.getElementById(id).style.backgroundColor='red';
+                        index = a1Remaining.indexOf(cellToCheck);
+                        a1Remaining.splice(index, 1);
+                        p1_score-=2;
+                        if(a1Remaining.length == 0)
+                        {
+                            sunk('Aircraft Carrier');
+                        }
+                        else
+                        {
+                            hit();
+                        }
+                    }
+                    else if(b1Remaining.includes(cellToCheck))
+                    {
+                        document.getElementById(id).style.backgroundColor='red';
+                        index = b1Remaining.indexOf(cellToCheck);
+                        b1Remaining.splice(index, 1);
+                        p1_score-=2;
+                        if(b1Remaining.length == 0)
+                        {
+                            sunk('Battleship');
+                        }
+                        else
+                        {
+                            hit();
+                        }
+                    }
+                    else if(s1Remaining.includes(cellToCheck))
+                    {
+                        document.getElementById(id).style.backgroundColor='red';
+                        index = s1Remaining.indexOf(cellToCheck);
+                        s1Remaining.splice(index, 1);
+                        p1_score-=2;
+                        if(s1Remaining.length == 0)
+                        {
+                            sunk('Submarine');
+                        }
+                        else
+                        {
+                            hit();
+                        }
+                    }
+                    else
+                    {
+                        document.getElementById(id).style.backgroundColor='white';
+                        miss();
+                    }
+
+                    if(p1_score == 0)
+                        endGame(p2_name);
+
+                    p1TurnPrompt();
+                    
+                }
+                else if (boardToCheck == 'p2')
+                {
+                    if(a2Remaining.includes(cellToCheck))
+                    {
+                        document.getElementById(id).style.backgroundColor='red';
+                        index = a2Remaining.indexOf(cellToCheck);
+                        a2Remaining.splice(index, 1);
+                        p2_score-=2;
+                        if(a2Remaining.length == 0)
+                        {
+                            sunk('Aircraft Carrier');
+                        }
+                        else
+                        {
+                            hit();
+                        }
+                    }
+                    else if(b2Remaining.includes(cellToCheck))
+                    {
+                        document.getElementById(id).style.backgroundColor='red';
+                        index = b2Remaining.indexOf(cellToCheck);
+                        b2Remaining.splice(index, 1);
+                        p2_score-=2;
+                        if(b2Remaining.length == 0)
+                        {
+                            sunk('Battleship');
+                        }
+                        else
+                        {
+                            hit();
+                        }
+                    }
+                    else if(s2Remaining.includes(cellToCheck))
+                    {
+                        document.getElementById(id).style.backgroundColor='red';
+                        index = s2Remaining.indexOf(cellToCheck);
+                        s2Remaining.splice(index, 1);
+                        p2_score-=2;
+                        console.log(s2Remaining);
+                        if(s2Remaining.length == 0)
+                        {
+                            sunk('Submarine');
+                        }
+                        else
+                        {
+                            hit();
+                        }
+                    }
+                    else
+                    {
+                        document.getElementById(id).style.backgroundColor='white';
+                        miss();
+                    }
+
+                    if(p2_score == 0)
+                        endGame(p1_name);
+
+                    p2TurnPrompt();
+                    
+                }
+                
+            }
+
+            function tryAgain()
+            {
+                let alert = document.createElement('div');
+                alert.setAttribute('class', 'popup');
+                alert.setAttribute('id','alert');
+                alert.setAttribute('style','left: 73vw;');
+                let content = document.createTextNode('You already guessed this cell! Try again.');
+                alert.appendChild(content);
+                alert.appendChild(document.createElement('br'));
+                alert.appendChild(contButton);
+                document.body.appendChild(alert);
+                alert.style.visibility='visible';
+                contButton.addEventListener('click', () => vanish(alert));
+            }
+
+            function endGame(winner)
+            {
+                let end = document.createElement('div');
+                end.setAttribute('class', 'popup');
+                end.setAttribute('id', 'end');
+                let content = document.createTextNode(winner + ' is the winner!\n' + p1_name +' score: ' + p1_score + '\n' + p2_name + ' score: ' + p2_score);
+                end.appendChild(content);
+                end.appendChild(contButton);
+                document.body.appendChild(end);
+                end.style.visibility='visible';
+                contButton.setAttribute('onclick', 'location.reload()');
+            }
+            function sunk(ship)
+            {
+                let sunk = document.createElement('div');
+                sunk.setAttribute('class', 'popup');
+                sunk.setAttribute('id','sunk');
+                let content = document.createTextNode('You sunk your opponents '+ship+'!');
+                sunk.appendChild(content);
+                sunk.appendChild(document.createElement('br'));
+                sunk.appendChild(contButton);
+                document.body.appendChild(sunk);
+                sunk.style.visibility='visible';
+                contButton.addEventListener('click', () => vanish(sunk));
+            }
+            function miss()
+            {
+                let miss = document.createElement('div');
+                miss.setAttribute('class','popup');
+                miss.setAttribute('id','miss');
+                let content = document.createTextNode('You missed!');
+                miss.appendChild(content);
+                miss.appendChild(document.createElement('br'));
+                miss.appendChild(contButton);
+                document.body.appendChild(miss);
+                miss.style.visibility='visible';
+                contButton.addEventListener('click', () => vanish(miss));
+            }
+            function hit()
+            {
+                let hit = document.createElement('div');
+                hit.setAttribute('class','popup');
+                hit.setAttribute('id','hit');
+                let content = document.createTextNode('You hit a ship!');
+                hit.appendChild(content);
+                hit.appendChild(document.createElement('br'));
+                hit.appendChild(contButton);
+                document.body.appendChild(hit);
+                hit.style.visibility='visible';
+                contButton.addEventListener('click', () => vanish(hit));
+            }
+            
+            function vanish(obj)
+            {
+                obj.style.visibility = 'hidden';
+            }
+
+            function p1TurnPrompt() {
+                document.getElementById('turnPrompt').style.visibility='visible';
+                document.getElementById('startTurnButton').style.visibility='visible';
+                document.getElementById('cover').style.visibility = 'hidden';
+                p1Board.style.visibility='hidden';
+                p2Board.style.visibility='hidden';
+
+                var element = document.getElementById('turnPrompt');
+
+                if(element.hasChildNodes())
+                    element.removeChild(element.firstChild);
+
+                //Add text to the prompt
+                    const content = document.createTextNode(p1_name + "'s turn. Please pass them the computer.");
+                // appending to html
+                    element.insertBefore(content, element.firstChild);
+
+                btn = document.getElementById('startTurnButton');
+                btn.addEventListener('click', () => {p1Turn()});
+
+            }
+
+            function p1Turn() {
+                p1Board.setAttribute('id', 'currPlayerBoard');
+                p2Board.setAttribute('id', 'opponentBoard');
+                p1Board.style.visibility='visible';
+                p2Board.style.visibility='visible';
+                document.getElementById('cover').style.visibility = 'visible';
+
+                document.getElementById('startTurnButton').style.visibility = 'hidden';
+                document.getElementById('turnPrompt').style.visibility = 'hidden';                
+
+            }
+
+            function p2TurnPrompt() {
+                p1Board.style.visibility='hidden';
+                p2Board.style.visibility='hidden';
+                document.getElementById('turnPrompt').style.visibility='visible';
+                document.getElementById('startTurnButton').style.visibility='visible';
+                document.getElementById('cover').style.visibility = 'hidden';
+
+                var element = document.getElementById('turnPrompt');
+
+                //Add text to the prompt
+                    element.removeChild(element.firstChild);
+                    const content = document.createTextNode(p2_name + "'s turn. Please pass them the computer.");
+                // appending to html
+                    element.insertBefore(content, element.firstChild);
+
+                btn = document.getElementById('startTurnButton');
+                btn.addEventListener('click', () => {p2Turn()});
+            }
+
+            function p2Turn() {
+                p2Board.setAttribute('id', 'currPlayerBoard');
+                p1Board.setAttribute('id', 'opponentBoard');
+                document.getElementById('cover').style.visibility = 'visible';
+                p1Board.style.visbility='visible';
+                p2Board.style.visbility='visible';
+
+                document.getElementById('turnPrompt').style.visibility='hidden';
+                document.getElementById('startTurnButton').style.visibility='hidden';
+
+            }
+
+        </script>
+
+    </head>
+
+    <body>
+        <!-- Get the users' names -->
+            <form class="welcome" id="form">
+                <p>Welcome to Battleship! Please enter the names of the players:</p>
+                Player 1: <input type="text" name="player1"><br>
+                Player 2: <input type="text" name="player2"><br><br>
+                <input id='startButton' type="button" onclick="setPlayer1()" value="Play!">
+            </form>
+
+        <form id='inputPrompt' class='popup'>
+            <br>
+            <input id = 'shipSelection' type="text" placeholder="A(A1-A5);B(B6-E6);S(H3-J3);" style='width: 20vw; text-align: center;'>
+            <br>
+            <input id = 'nextButton1' type='button' onclick='setPlayer2()' value='Next'>
+            <input id = 'nextButton2' type='button' onclick='processInput()' value='Start Game!'>
+            <br>
+            <p id='input-directions'>Your input would be of the form: <br>
+            <strong>A(A1-A5);B(B6-E6);S(H3-J3);</strong><br>
+            if you would like to place...<br>an <strong>A</strong>ircraft carrier (5 spaces long) at A1 to A5,<br>
+            a <strong>B</strong>attleship (4 spaces long) at B6 to E6,<br>
+            a <strong>S</strong>ubmarine (3 spaces long) at H3 to J3.</p>
+        </form>
+
+        <div id='turnPrompt' class='popup'>
+            <br>
+            <button id='startTurnButton' type='button'>Start Turn</button>
+        </div>
+
+
+    </body>
+</html>

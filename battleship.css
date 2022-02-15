@@ -1,0 +1,147 @@
+#currPlayerBoard {
+    float: left;
+    visibility: visible;
+    position: absolute;
+    left: 0vw;
+    margin-left: 10vw;
+    padding: none;
+    font-size: 24px;
+    text-align: center;
+
+}
+
+#cover {
+    z-index: 100;
+    width: 50vw;
+    float: left;
+    height: 100vh;
+    background-color: transparent;
+    visibility: hidden;
+    position: absolute;
+
+}
+
+#opponentBoard {
+    float: right;
+    visibility: visible;
+    position: absolute;
+    right: 0vw;
+    margin-right: 10vw;
+    padding: none;
+}
+
+#opponentBoard > .cell {
+    content-visibility: hidden;
+}
+
+.cell {
+    border: 1px solid black;
+    height: 3vw;
+    width: 3vw;
+    float: left;
+    color: black;
+}
+.cell:hover {
+    cursor: pointer;
+}
+
+.nextButton1 {
+    position: absolute;
+    margin: auto;
+}
+.nextButton2 {
+    position: absolute;
+    margin: auto;
+}
+
+#continueButton {
+    position: absolute;
+    margin: auto;
+}
+
+.welcome {
+    top: 50%;
+    left: 50%;
+    position: absolute;
+    margin: -100px 0 0 -200px;
+    height: 200px;
+    width: 400px;
+    border-radius: 10px;
+    background-color: palegreen;
+    text-align: center;
+    font-size: 20px;
+    padding: 5px;
+    font-family: sans-serif;
+
+}
+
+.board {
+    height: 31.6vw;
+    width: 31.6vw;
+    background-color: lightblue;
+    margin-top: 5vw;
+    border-radius: 0px;
+    position: absolute;
+    visibility: hidden;
+}
+
+.popup#end {
+    visibility:hidden;
+}
+.popup#sunk {
+    visibility:hidden;
+}
+.popup#sunk {
+    visibility:hidden;
+}
+.popup#hit {
+    visibility:hidden;
+}
+.contButton#continueButton {
+    margin: auto;
+    position: relative;
+}
+
+
+#inputPrompt {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    margin: -125px 0 0 -200px;
+    height: 250px;
+    width: 400px;
+    border-radius: 10px;
+    background-color:palegreen;
+    color:black;
+    font-size: 20px;
+    visibility: hidden;
+    text-align: center;
+    padding-top: 10px;
+    font-family: sans-serif;
+}
+
+#inputPrompt #input-directions {
+    text-align:center;
+    font-size: 15px;
+    color: black;
+}
+
+#startTurnButton {
+    visibility: hidden;
+}
+
+.popup {
+    top: 50%;
+    left: 50%;
+    position: absolute;
+    margin: -50px 0 0 -100px;
+    height: 100px;
+    width: 200px;
+    font-size: 20px;
+    text-align: center;
+    background-color: palegreen;
+    padding: 10px;
+    border-radius: 10px;
+    visibility: hidden;
+    font-family: sans-serif;
+}
